@@ -14,5 +14,13 @@
   "dependencies": {
     "express": "^5.2.1",
     "ws": "^8.19.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jurten/turnero-websocket.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jurten/turnero-websocket/issues"
+  },
+  "homepage": "https://github.com/jurten/turnero-websocket#readme"
 }

@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Turnero – Display</title>
+
+  <style>
+    :root {
+      --amarillo: #facc15;
+      --amarillo-oscuro: #eab308;
+      --gris-oscuro: #1f2937;
+      --gris-medio: #6b7280;
+      --gris-claro: #f3f4f6;
+      --gris-suave: #e5e7eb;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--gris-claro);
+      color: var(--gris-oscuro);
+    }
+
+    .wrap { max-width: 980px; margin: 0 auto; }
+
+    /* Header con logo */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 16px 0px;
+      background: #fff;
+      border-bottom: 1px solid var(--gris-suave);
+      position: relative;
+    }
+
+    .logo{
+      height: 100px;
+      width: auto;
+      display:block;
+    }
+    .conn{
+      position: absolute;
+      right: 24px;
+      font-size: 12px;
+      color: var(--gris-medio);
+      background: #fff;
+      border: 1px solid var(--gris-suave);
+      border-radius: 999px;
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+
+
+    .grid { display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 16px; align-items: start; }
+
+    @media (max-width: 860px){
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--gris-suave);
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.05);
+      padding: 16px;
+    }
+
+    .banner {
+      background: var(--amarillo);
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: var(--gris-oscuro);
+      font-weight: 900;
+    }
+
+    /* Próximo (mega) */
+    .nextWrap{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .nextLabel{
+      font-size: 12px;
+      color: var(--gris-medio);
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    .nextName{
+      font-size: 52px;
+      line-height: 1.05;
+      font-weight: 1000;
+      letter-spacing: .2px;
+      word-break: break-word;
+    }
+    @media (max-width: 860px){
+      .nextName{ font-size: 44px; }
+    }
+
+    .metaSmall{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 2px;
+    }
+    .pill{
+      background: #fff;
+      border: 1px solid var(--gris-suave);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--gris-medio);
+      font-weight: 700;
+    }
+
+    /* Cola más chica */
+    .queueTitle{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      margin: 0 0 10px;
+    }
+    .queueTitle h2{
+      margin:0;
+      font-size: 16px;
+    }
+    .queueHint{
+      font-size: 12px;
+      color: var(--gris-medio);
+      font-weight: 600;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--gris-suave);
+      border-radius: 14px;
+      margin: 8px 0;
+      background: #fff;
+      align-items: center;
+    }
+
+    .pos {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--amarillo);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: var(--gris-oscuro);
+      font-size: 13px;
+    }
+
+    .name{
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .small {
+      color: var(--gris-medio);
+      font-size: 12px;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .hr {
+      height:1px;
+      background: var(--gris-suave);
+      margin: 14px 0;
+    }
+
+    .footnote {
+      color: var(--gris-medio);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <img class="logo" src="logo.png" alt="Logo" />
+    <div class="conn" id="conn">Conectando…</div>
+  </div>
+  <div class="wrap" style="margin-top:20px;">
+
+
+      <div class="card">
+        <div class="banner">
+          <div class="nextWrap">
+            <div class="nextLabel">PRÓXIMO/A A SER ATENDIDO/A</div>
+            <div class="nextName" id="nextName">—</div>
+          </div>
+        </div>
+
+        <div class="metaSmall">
+          <div class="pill">En cola: <span id="kTotal">0</span></div>
+          <div class="pill" id="updated">Actualizado: —</div>
+        </div>
+
+        <div class="footnote">
+          Este display es solo lectura. Se actualiza automáticamente con el servidor.
+        </div>
+      </div>
+
+      <!-- DER: Cola (más chica) -->
+      <div class="card">
+        <div class="queueTitle">
+          <h2>Cola</h2>
+          <div class="queueHint">Siguientes</div>
+        </div>
+
+        <div id="queueList"></div>
+
+        <div class="hr"></div>
+        <div class="footnote" id="lastServed" style="margin:0;">
+          Último atendido: —
+        </div>
+    </div>
+  </div>
+
+  <script>
+    const elConn = document.getElementById("conn");
+    const elNext = document.getElementById("nextName");
+    const elTotal = document.getElementById("kTotal");
+    const elUpdated = document.getElementById("updated");
+    const elQueue = document.getElementById("queueList");
+    const elLastServed = document.getElementById("lastServed");
+
+    const WS_URL = `ws://${location.hostname}:8081`;
+    const ws = new WebSocket(WS_URL);
+
+    function esc(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;");
+    }
+
+    function render(state){
+      const q = state?.queue || [];
+      const stats = state?.stats || {};
+
+      elNext.textContent = q[0]?.name ?? "—";
+      elTotal.textContent = String(q.length);
+
+      const last = (stats.ultimoAtendido && stats.ultimoAtendido !== "—") ? stats.ultimoAtendido : "—";
+      elLastServed.textContent = `Último atendido: ${last}`;
+
+      // Cola más chica: mostrar solo los siguientes N (sin el primero, porque ya está gigante)
+      const maxShow = 8;
+      const rest = q.slice(1, 1 + maxShow);
+
+      if (rest.length === 0) {
+        elQueue.innerHTML = `
+          <div class="item">
+            <div class="pos">✓</div>
+            <div>
+              <div class="name">No hay más en cola</div>
+              <div class="small">Agregá clientes desde el panel de control.</div>
+            </div>
+          </div>
+        `;
+      } else {
+        elQueue.innerHTML = rest.map((it, i) => `
+          <div class="item">
+            <div class="pos">${i + 2}</div>
+            <div>
+              <div class="name">${esc(it.name)}</div>
+              <div class="small">En espera</div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      const ts = new Date();
+      elUpdated.textContent = `Actualizado: ${ts.toLocaleString("es-AR")}`;
+    }
+
+    ws.onopen = () => { elConn.textContent = "Conectado ✅"; };
+    ws.onclose = () => { elConn.textContent = "Desconectado ❌"; };
+    ws.onerror = () => { elConn.textContent = "Error de conexión"; };
+
+    ws.onmessage = (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch { return; }
+      if (msg.type === "STATE") render(msg.payload);
+    };
+  </script>
+</body>
+</html>
