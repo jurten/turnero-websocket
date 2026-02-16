@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cola de Clientes</title>
+  <audio id="queueSound" preload="auto">
+    <source src="notificacion.mp4" type="audio/mp4">
+  </audio>
+  <style>
+  :root {
+    --amarillo: #facc15;
+    --amarillo-oscuro: #eab308;
+    --gris-oscuro: #1f2937;
+    --gris-medio: #6b7280;
+    --gris-claro: #f3f4f6;
+    --gris-suave: #e5e7eb;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    margin: 0;
+    padding: 24px;
+    background: var(--gris-claro);
+    color: var(--gris-oscuro);
+  }
+
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  h1 { margin: 0 0 6px; font-size: 28px; }
+
+  p.sub { margin: 0 0 18px; color: var(--gris-medio); }
+
+  .grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; align-items: start; }
+
+  @media (max-width: 860px){
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--gris-suave);
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.05);
+    padding: 16px;
+  }
+
+  label {
+    font-size: 12px;
+    color: var(--gris-medio);
+    display: block;
+    margin: 0 0 6px;
+  }
+
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--gris-suave);
+    background: #fff;
+    font-size: 15px;
+  }
+
+  input:focus, textarea:focus {
+    border-color: var(--amarillo);
+    box-shadow: 0 0 0 3px rgba(250,204,21,.3);
+    outline: none;
+  }
+
+  button {
+    border: 1px solid var(--gris-suave);
+    background: #fff;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--gris-oscuro);
+  }
+
+  button:hover {
+    background: var(--gris-claro);
+  }
+
+  button.primary {
+    background: var(--amarillo);
+    border-color: var(--amarillo);
+    color: var(--gris-oscuro);
+  }
+
+  button.primary:hover {
+    background: var(--amarillo-oscuro);
+  }
+
+  button.danger {
+    background: #fff;
+    border-color: #f87171;
+    color: #b91c1c;
+  }
+
+  button.danger:hover {
+    background: #fee2e2;
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .kpi {
+    background: var(--gris-claro);
+    border: 1px solid var(--gris-suave);
+    border-radius: 14px;
+    padding: 12px;
+  }
+
+  .kpi .n {
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  .kpi .t {
+    color: var(--gris-medio);
+    font-size: 12px;
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--gris-suave);
+    border-radius: 14px;
+    margin: 10px 0;
+    background: #fff;
+    align-items: center;
+  }
+
+  .pos {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--amarillo);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    color: var(--gris-oscuro);
+  }
+
+  .small {
+    color: var(--gris-medio);
+    font-size: 12px;
+  }
+
+  .banner {
+    background: var(--amarillo);
+    border-radius: 16px;
+    padding: 12px;
+    color: var(--gris-oscuro);
+    font-weight: 700;
+  }
+
+  .toast {
+    margin-top: 10px;
+    color: #065f46;
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    display: none;
+  }
+
+  .toast.err {
+    color:#842029;
+    background:#fee2e2;
+    border-color:#fecaca;
+  }
+
+  .footnote {
+    color: var(--gris-medio);
+    font-size: 12px;
+    margin-top: 10px;
+  }
+
+  .hr {
+    height:1px;
+    background: var(--gris-suave);
+    margin: 14px 0;
+  }
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cola de Clientes</h1>
+    <p class="sub">Cargá nombres y administrá el orden de atención (se guarda automáticamente en este navegador).</p>
+
+    <div class="grid">
+      <!-- Left: Queue -->
+      <div class="card">
+        <div class="banner" id="nextBanner">
+          <span>Próximo/a: <b id="nextName">—</b></span>
+        </div>
+
+        <div class="meta">
+          <div class="kpi">
+            <div class="n" id="kpiTotal">0</div>
+            <div class="t">En cola</div>
+          </div>
+          <div class="kpi">
+            <div class="n" id="kpiAtendidos">0</div>
+            <div class="t">Atendidos hoy</div>
+          </div>
+          <div class="kpi">
+            <div class="n" id="kpiUltimo">—</div>
+            <div class="t">Último atendido</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <button class="primary" id="btnDequeue" type="button">Atender (sacar de la cola)</button>
+          <button id="btnPeek" type="button">Ver próximo</button>
+          <button class="danger" id="btnClear" type="button">Vaciar cola</button>
+        </div>
+
+        <div class="toast" id="toast"></div>
+
+        <div class="queue" id="queueList" aria-live="polite"></div>
+
+        <div class="footnote">
+          Tip: Podés editar un nombre, borrar un cliente o exportar/importar la cola.
+        </div>
+      </div>
+
+      <!-- Right: Add / Import / Export -->
+      <div class="card">
+        <div class="row">
+          <div style="flex: 2;">
+            <label for="clientName">Nombre del cliente</label>
+            <input id="clientName" type="text" placeholder="Ej: Juan Pérez" autocomplete="off" />
+          </div>
+          <div style="flex: 1;">
+            <label>&nbsp;</label>
+            <button class="primary" id="btnEnqueue" type="button">Agregar a la cola</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <label for="bulkInput">Carga masiva (uno por línea)</label>
+        <textarea id="bulkInput" placeholder="Ej:
+María Gómez
+Carlos Díaz
+Ana López"></textarea>
+
+        <div class="row" style="margin-top:10px;">
+          <button id="btnBulkAdd" type="button">Agregar líneas</button>
+          <button id="btnBulkClear" type="button">Limpiar texto</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <label for="jsonBox">Importar / Exportar (JSON)</label>
+        <textarea id="jsonBox" placeholder='Exportá tu cola acá o pegá un JSON para importar'></textarea>
+
+        <div class="row" style="margin-top:10px;">
+          <button id="btnExport" type="button">Exportar cola</button>
+          <button id="btnImport" type="button">Importar cola</button>
+          <button class="danger" id="btnResetAll" type="button">Resetear todo</button>
+        </div>
+
+        <div class="footnote">
+          Exportar genera un JSON con la cola y estadísticas. Importar reemplaza lo que haya actualmente.
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    "use strict";
+
+    // --- WebSocket ---
+    const clientId = (crypto?.randomUUID?.() || (Math.random().toString(16).slice(2) + "-" + Date.now()));
+    const WS_URL = `ws://${location.hostname}:8081`;
+    const ws = new WebSocket(WS_URL);
+
+    // Audio (mismo comportamiento: no superpone)
+    const queueSound = document.getElementById("queueSound");
+    function playQueueSound() {
+      if (!queueSound) return;
+      queueSound.pause();
+      queueSound.currentTime = 0;
+      queueSound.play().catch(() => {});
+    }
+
+    // Estado viene del servidor
+    let state = {
+      queue: [],
+      stats: { atendidosHoy: 0, ultimoAtendido: "—", diaISO: "" },
+      lastAction: null
+    };
+
+    // Helpers UI
+    function normalizeName(s) {
+      return (s ?? "").trim().replace(/\s+/g, " ");
+    }
+    function toast(msg, isError=false) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.toggle("err", !!isError);
+      el.style.display = "block";
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { el.style.display = "none"; }, 2600);
+    }
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function send(type, payload) {
+      if (ws.readyState !== WebSocket.OPEN) {
+        toast("Conectando al servidor... probá de nuevo en 1s.", true);
+        return;
+      }
+      ws.send(JSON.stringify({ type, payload: { ...payload, clientId } }));
+    }
+
+    function render() {
+      const list = document.getElementById("queueList");
+      list.innerHTML = "";
+
+      const total = state.queue.length;
+      document.getElementById("kpiTotal").textContent = String(total);
+      document.getElementById("kpiAtendidos").textContent = String(state.stats.atendidosHoy ?? 0);
+      document.getElementById("kpiUltimo").textContent = state.stats.ultimoAtendido || "—";
+
+      const next = state.queue[0]?.name ?? "—";
+      document.getElementById("nextName").textContent = next;
+
+      if (total === 0) {
+        const empty = document.createElement("div");
+        empty.className = "item";
+        empty.innerHTML = `
+          <div class="pos">✓</div>
+          <div>
+            <div class="name">No hay clientes en cola</div>
+            <div class="small">Agregá un nombre para empezar.</div>
+          </div>
+          <div class="actions"></div>
+        `;
+        list.appendChild(empty);
+        return;
+      }
+
+      state.queue.forEach((it, idx) => {
+        const row = document.createElement("div");
+        row.className = "item";
+        const created = new Date(it.createdAt);
+        const createdTxt = isNaN(created.getTime()) ? "" : created.toLocaleString("es-AR");
+
+        row.innerHTML = `
+          <div class="pos">${idx + 1}</div>
+          <div>
+            <div class="name">${escapeHtml(it.name)}</div>
+            <div class="small">${createdTxt ? ("Agregado: " + createdTxt) : ""}</div>
+          </div>
+          <div class="actions">
+            <button type="button" data-act="up" data-id="${it.id}">↑</button>
+            <button type="button" data-act="down" data-id="${it.id}">↓</button>
+            <button type="button" data-act="edit" data-id="${it.id}">Editar</button>
+            <button type="button" data-act="del" data-id="${it.id}">Borrar</button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    // --- WebSocket handlers ---
+    ws.onopen = () => toast("Conectado al servidor ✅");
+    ws.onclose = () => toast("Se perdió la conexión con el servidor.", true);
+    ws.onerror = () => toast("Error de conexión.", true);
+
+    // Para reproducir sonido SOLO en el dispositivo que apretó “Atender”
+    let lastDequeueTs = 0;
+
+    ws.onmessage = (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch { return; }
+      if (msg.type !== "STATE") return;
+
+      const prev = state;
+      state = msg.payload || state;
+
+      render();
+
+      // Si el último evento fue DEQUEUE y lo hice yo -> sonido
+      const la = state.lastAction;
+      if (la && la.type === "DEQUEUE" && la.ts && la.ts !== lastDequeueTs) {
+        lastDequeueTs = la.ts;
+        playQueueSound();
+        toast(`Atendido/a: ${state.stats.ultimoAtendido}`);
+      }
+    };
+
+    // --- Actions (ahora via backend) ---
+    function enqueue(name) {
+      const n = normalizeName(name);
+      if (!n) return toast("Ingresá un nombre válido.", true);
+      send("ENQUEUE", { name: n });
+      toast(`Agregado: ${n}`);
+    }
+
+    function bulkAdd(text) {
+      const lines = String(text || "")
+        .split(/\r?\n/)
+        .map(normalizeName)
+        .filter(Boolean);
+
+      if (!lines.length) return toast("No hay líneas válidas para agregar.", true);
+      send("BULK_ADD", { names: lines });
+      toast(`Agregados ${lines.length} cliente(s).`);
+    }
+
+    function dequeue() {
+      if (!state.queue.length) return toast("La cola está vacía.", true);
+      send("DEQUEUE", {});
+      // El toast “Atendido” + sonido llegan por STATE (para evitar duplicados)
+    }
+
+    function peek() {
+      const it = state.queue[0];
+      if (!it) return toast("La cola está vacía.", true);
+      toast(`Próximo/a: ${it.name}`);
+    }
+
+    function clearQueue() {
+      if (!state.queue.length) return toast("Ya está vacía.");
+      if (!confirm("¿Seguro que querés vaciar la cola?")) return;
+      send("CLEAR_QUEUE", {});
+      toast("Cola vaciada.");
+    }
+
+    function resetAll() {
+      if (!confirm("¿Seguro que querés resetear cola y estadísticas?")) return;
+      send("RESET_ALL", {});
+      toast("Todo reseteado.");
+    }
+
+    function move(id, dir) {
+      send("MOVE", { id, dir });
+    }
+
+    function edit(id) {
+      const current = state.queue.find(x => x.id === id)?.name;
+      const next = normalizeName(prompt("Editar nombre:", current ?? "") ?? "");
+      if (!next) return toast("Edición cancelada o nombre inválido.", true);
+      send("EDIT", { id, name: next });
+      toast("Nombre actualizado.");
+    }
+
+    function del(id) {
+      const name = state.queue.find(x => x.id === id)?.name ?? "";
+      if (!confirm(`¿Borrar a "${name}" de la cola?`)) return;
+      send("DELETE", { id });
+      toast("Cliente borrado.");
+    }
+
+    function exportJson() {
+      const payload = { exportedAt: new Date().toISOString(), ...state };
+      const box = document.getElementById("jsonBox");
+      box.value = JSON.stringify(payload, null, 2);
+      box.focus();
+      box.select();
+      toast("Exportado a JSON (seleccionado).");
+    }
+
+    function importJson(text) {
+      try {
+        const parsed = JSON.parse(text);
+        if (!parsed || !Array.isArray(parsed.queue)) throw new Error("Formato inválido");
+        send("IMPORT_STATE", { data: parsed });
+        toast("Importación enviada al servidor.");
+      } catch {
+        toast("No se pudo importar: JSON inválido.", true);
+      }
+    }
+
+    // --- Wire events ---
+    document.getElementById("btnEnqueue").addEventListener("click", () => {
+      const input = document.getElementById("clientName");
+      enqueue(input.value);
+      input.value = "";
+      input.focus();
+    });
+
+    document.getElementById("clientName").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("btnEnqueue").click();
+      }
+    });
+
+    document.getElementById("btnDequeue").addEventListener("click", dequeue);
+    document.getElementById("btnPeek").addEventListener("click", peek);
+    document.getElementById("btnClear").addEventListener("click", clearQueue);
+
+    document.getElementById("btnBulkAdd").addEventListener("click", () => {
+      const ta = document.getElementById("bulkInput");
+      bulkAdd(ta.value);
+      ta.value = "";
+      ta.focus();
+    });
+    document.getElementById("btnBulkClear").addEventListener("click", () => {
+      document.getElementById("bulkInput").value = "";
+    });
+
+    document.getElementById("btnExport").addEventListener("click", exportJson);
+    document.getElementById("btnImport").addEventListener("click", () => {
+      const text = document.getElementById("jsonBox").value.trim();
+      if (!text) return toast("Pegá un JSON en la caja para importar.", true);
+      if (!confirm("Importar va a reemplazar la cola actual. ¿Continuar?")) return;
+      importJson(text);
+    });
+
+    document.getElementById("btnResetAll").addEventListener("click", resetAll);
+
+    document.getElementById("queueList").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn) return;
+      const act = btn.getAttribute("data-act");
+      const id = btn.getAttribute("data-id");
+
+      if (act === "up") move(id, -1);
+      if (act === "down") move(id, +1);
+      if (act === "edit") edit(id);
+      if (act === "del") del(id);
+    });
+
+    // Render inicial vacío (se llena cuando llega STATE)
+    render();
+  })();
+</script>
+</body>
+</html>
